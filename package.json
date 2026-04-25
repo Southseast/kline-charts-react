@@ -40,6 +40,7 @@
     "test:run": "vitest run",
     "pack:check": "npm pack --dry-run",
     "preview": "yarn --cwd playground preview",
+    "prepare": "npm run build",
     "prepublishOnly": "yarn build"
   },
   "peerDependencies": {
