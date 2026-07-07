@@ -126,7 +126,7 @@ export const KLineChart = forwardRef<KLineChartRef, KLineChartProps>(function KL
   );
 
   // 数据获取
-  const { data, timelineData, loading, loadingMore, error, hasMore, refresh, loadMore } = useKlineData({
+  const { data, timelineData, prevClose, loading, loadingMore, error, hasMore, refresh, loadMore } = useKlineData({
     symbol,
     market,
     period,
@@ -248,9 +248,13 @@ export const KLineChart = forwardRef<KLineChartRef, KLineChartProps>(function KL
   const calcInitialStart = useCallback((total: number) => {
     return total > 0 ? Math.max(0, 100 - (visibleCount / total) * 100) : 2;
   }, [visibleCount]);
-  loadMoreRef.current = loadMore;
-  hasMoreRef.current = hasMore;
-  loadingMoreRef.current = loadingMore;
+
+  // 用 effect 同步最新值到 ref（render 期直接写 ref 会触发 react-hooks/refs 报错）
+  useEffect(() => {
+    loadMoreRef.current = loadMore;
+    hasMoreRef.current = hasMore;
+    loadingMoreRef.current = loadingMore;
+  }, [loadMore, hasMore, loadingMore]);
 
   useEffect(() => {
     const unbind = bindEvent('datazoom', (params: unknown) => {
@@ -355,7 +359,6 @@ export const KLineChart = forwardRef<KLineChartRef, KLineChartProps>(function KL
 
     // 分时图使用专门的构建器
     if (isTimelinePeriod(period) && timelineData.length > 0) {
-      const prevClose = data.length > 0 ? (data[0]?.close ?? undefined) : undefined;
       chartOption = buildTimelineOption({
         data: timelineData,
         theme: themeConfig,
@@ -423,6 +426,7 @@ export const KLineChart = forwardRef<KLineChartRef, KLineChartProps>(function KL
   }, [
     data,
     timelineData,
+    prevClose,
     themeConfig,
     indicators,
     actualPanes,

@@ -162,22 +162,24 @@ export interface KCOptions {
 
 /**
  * 指标参数配置
+ *
+ * 是否显示指标由 `KLineChartProps.indicators` 控制；这里仅描述每个指标的算法参数。
  */
 export interface IndicatorOptions {
-  ma?: MAOptions | boolean;
-  macd?: MACDOptions | boolean;
-  boll?: BOLLOptions | boolean;
-  kdj?: KDJOptions | boolean;
-  rsi?: RSIOptions | boolean;
-  wr?: WROptions | boolean;
-  bias?: BIASOptions | boolean;
-  cci?: CCIOptions | boolean;
-  atr?: ATROptions | boolean;
-  obv?: OBVOptions | boolean;
-  roc?: ROCOptions | boolean;
-  dmi?: DMIOptions | boolean;
-  sar?: SAROptions | boolean;
-  kc?: KCOptions | boolean;
+  ma?: MAOptions;
+  macd?: MACDOptions;
+  boll?: BOLLOptions;
+  kdj?: KDJOptions;
+  rsi?: RSIOptions;
+  wr?: WROptions;
+  bias?: BIASOptions;
+  cci?: CCIOptions;
+  atr?: ATROptions;
+  obv?: OBVOptions;
+  roc?: ROCOptions;
+  dmi?: DMIOptions;
+  sar?: SAROptions;
+  kc?: KCOptions;
 }
 
 /**
@@ -201,11 +203,29 @@ export interface GetTimelineParams {
 }
 
 /**
+ * 分时数据返回结果
+ */
+export interface TimelineResult {
+  data: TimelineData[];
+  /** 昨收价（用于分时图涨跌着色与参考线） */
+  prevClose?: number | null;
+}
+
+/**
  * 数据源提供者
  */
 export interface KLineDataProvider {
   getKline: (params: GetKlineParams, signal?: AbortSignal) => Promise<KlineData[]>;
-  getTimeline?: (params: GetTimelineParams, signal?: AbortSignal) => Promise<TimelineData[]>;
+  /**
+   * 分时数据（可选，仅分时模式使用）。
+   *
+   * 推荐返回 `TimelineResult`（`{ data, prevClose }`）以驱动分时图的涨跌着色与昨收线；
+   * 也兼容直接返回 `TimelineData[]`（此时 prevClose 视为缺省）。
+   */
+  getTimeline?: (
+    params: GetTimelineParams,
+    signal?: AbortSignal
+  ) => Promise<TimelineResult | TimelineData[]>;
 }
 
 /**
@@ -338,6 +358,6 @@ export interface KLineChartRef {
   resetZoom(): void;
   getVisibleRange(): VisibleRange;
   getEchartsInstance(): EChartsType | null;
-  exportImage(type?: 'png' | 'jpeg'): string;
+  exportImage(type?: 'png' | 'jpeg'): string | null;
   getData(): KlineData[];
 }

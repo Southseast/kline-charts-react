@@ -78,7 +78,7 @@ describe('useKlineData', () => {
   it('clears stale timeline data when leaving timeline mode', async () => {
     const provider: KLineDataProvider = {
       getKline: vi.fn().mockResolvedValue(sampleKlineData),
-      getTimeline: vi.fn().mockResolvedValue(sampleTimelineData),
+      getTimeline: vi.fn().mockResolvedValue({ data: sampleTimelineData, prevClose: 9.8 }),
     };
 
     const { result, rerender } = renderHook(
@@ -100,11 +100,39 @@ describe('useKlineData', () => {
       expect(result.current.timelineData).toHaveLength(sampleTimelineData.length);
     });
 
+    expect(result.current.prevClose).toBe(9.8);
+
     rerender({ period: 'daily' as 'timeline' | 'daily' });
 
     await waitFor(() => {
       expect(result.current.timelineData).toHaveLength(0);
     });
+    expect(result.current.prevClose).toBeNull();
+  });
+
+  it('accepts a legacy getTimeline that returns a bare TimelineData[] (back-compat)', async () => {
+    const provider: KLineDataProvider = {
+      getKline: vi.fn().mockResolvedValue(sampleKlineData),
+      // 旧契约：直接返回数组，没有 prevClose
+      getTimeline: vi.fn().mockResolvedValue(sampleTimelineData),
+    };
+
+    const { result } = renderHook(() =>
+      useKlineData({
+        symbol: 'legacy-timeline-case',
+        market: 'A',
+        period: 'timeline',
+        adjust: 'qfq',
+        dataProvider: provider,
+        requestOptions: { debounceMs: 0 },
+      })
+    );
+
+    await waitFor(() => {
+      expect(result.current.timelineData).toHaveLength(sampleTimelineData.length);
+    });
+    // 数组形态没有昨收，归一后为 null，但分时数据照常可用
+    expect(result.current.prevClose).toBeNull();
   });
 
   it('recreates the default provider when sdkOptions change', async () => {

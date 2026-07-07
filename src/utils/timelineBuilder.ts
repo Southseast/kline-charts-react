@@ -1,6 +1,7 @@
 import type { EChartsOption } from 'echarts';
 import type { TimelineData, ThemeConfig } from '@/types';
 import { formatPrice, formatVolume } from './formatters';
+import { DATA_ZOOM_INSIDE_ID, DATA_ZOOM_SLIDER_ID } from './optionBuilder';
 
 /**
  * 构建分时图 category 类型的 xAxis 配置
@@ -187,13 +188,13 @@ export function buildTimelineOption(params: {
       ? {
           dataZoom: [
             {
-              id: 'kline-zoom-inside',
+              id: DATA_ZOOM_INSIDE_ID,
               type: 'inside',
               xAxisIndex: [0, 1],
               minValueSpan: 10,
             },
             {
-              id: 'kline-zoom-slider',
+              id: DATA_ZOOM_SLIDER_ID,
               type: 'slider',
               xAxisIndex: [0, 1],
               bottom: 8,
